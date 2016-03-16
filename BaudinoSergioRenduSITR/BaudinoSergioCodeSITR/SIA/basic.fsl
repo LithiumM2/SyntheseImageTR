@@ -1,0 +1,29 @@
+#version 430
+
+out vec4 color_out;
+in vec4 pos;
+in vec4 normal;
+in vec4 lightPos;
+layout(location = 5) uniform sampler2D shadowMap;
+
+layout(location = 6) uniform vec4 incolor;
+in vec4 ShadowCoord;
+void main()
+{
+float saveAlpha = incolor.w;
+vec4 colortmp = vec4(incolor.xyz, 1.0);
+vec4 ShadowCoord2 = ShadowCoord / ShadowCoord.w;
+	float visibility = 1.0;
+	if (ShadowCoord.w > 0.0)
+	 if ( texture( shadowMap, ShadowCoord2.xy ).z  <  ShadowCoord2.z - 0.005){
+		 visibility = 0.5;
+
+	 }
+	float dist = distance(pos, lightPos);
+	vec4 color =  colortmp  // color
+					* clamp(dot(normalize(normal), normalize(lightPos - pos)) * 40.f / (dist * dist), 0.f, 1.f) // diffus
+					* visibility // visibility
+					;
+	color_out = color;
+	color_out.a = saveAlpha;
+}
